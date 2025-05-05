@@ -3,7 +3,7 @@ BINARY_NAME=app
 all: deps build run
 
 deps:
-	go mod download tidy
+	go mod tidy
 
 build:
 	go build -o $(BINARY_NAME) ./cmd/main.go

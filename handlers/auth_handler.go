@@ -36,7 +36,12 @@ func Regester(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not create user."})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "User created."})
+	token, err := auth.GenerateJWT(req.Username)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not generate token."})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"token": token})
 }
 
 func Login(c *fiber.Ctx) error {
