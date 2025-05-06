@@ -38,3 +38,8 @@ func CreateUser(user *models.User) error {
 	result := DB.Create(user)
 	return result.Error
 }
+
+func UpdateUser(user *models.User) error {
+	result := DB.Save(user)
+	return result.Error
+}

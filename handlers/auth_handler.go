@@ -18,6 +18,10 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
+type ResetPasswordRequest struct {
+	Password string `json:"password"`
+}
+
 func Regester(c *fiber.Ctx) error {
 	var req RegesterRequest
 	if err := c.BodyParser(&req); err != nil {
@@ -65,4 +69,31 @@ func Login(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"token": token})
+}
+
+func ResetPassword(c *fiber.Ctx) error {
+	var req ResetPasswordRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request."})
+	}
+
+	user, err := database.GetUserByUsername(c.Locals("username").(string))
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not get user."})
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not hash password."})
+	}
+
+	// Update user password
+	user.Password = string(hashedPassword)
+
+	err = database.UpdateUser(user)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not update user's password."})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Password reset successfully."})
 }

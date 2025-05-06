@@ -11,7 +11,7 @@ func main() {
 	database.DBConnect()
 
 	app := fiber.New()
-
+	// public routes
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("Hello, World!")
 	})
@@ -19,7 +19,9 @@ func main() {
 	app.Post("/login", handlers.Login)
 
 	// protected routes
-	app.Get("/user", middleware.Protected(), handlers.RetrieveUser)
+	app.Use(middleware.Protected())
+	app.Get("/user", handlers.RetrieveUser)
+	app.Post("/reset-password", handlers.ResetPassword)
 
 	app.Listen(":3000")
 }

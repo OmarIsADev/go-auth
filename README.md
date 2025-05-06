@@ -40,12 +40,20 @@ This is a simple auth built with Go and Fiber framework. It provides endpoints f
    go run cmd/main.go
    ```
 
+   OR
+   
+   ```bash
+   make
+   ```
+
 4. **API Endpoints:**
 
-   - <a href="./handlers/auth_handler.go">`POST /register`</a>: Register a new user
-   - <a href="./handlers/auth_handler.go">`POST /login`</a>: Login and receive a JWT token
-   -  <a href="./handlers/userdata.go">`GET /user`</a>: Retrieve user information (protected route, requires JWT)
-     - Check the <a href="./middleware/auth_middleware.go">middleware</a> function.
+   - <a href="./handlers/auth_handler.go">Authrization:</a>
+     - `POST /register`: Register a new user and receive a JWT token
+     - `POST /login`: Login and receive a JWT token
+     - `POST /reset-password`: Reset user's password
+   - <a href="./handlers/userdata.go">User's CRUD:</a>
+     - `GET /user`: Retrieve user information (protected route, requires JWT)
 
 ## Description of the App
 
