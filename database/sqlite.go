@@ -26,7 +26,7 @@ func DBConnect() {
 
 func GetUserByUsername(username string) (*models.User, error) {
 	var user models.User
-	result := DB.Where("username = ?", username).First(&user)
+	result := DB.Find(&user, "username = ?", username).Limit(1)
 	if result.Error != nil {
 		return nil, result.Error
 	}
