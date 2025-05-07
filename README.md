@@ -52,6 +52,9 @@ This is a simple auth built with Go and Fiber framework. It provides endpoints f
      - `POST /register`: Register a new user and receive a JWT token
      - `POST /login`: Login and receive a JWT token
      - `POST /reset-password`: Reset user's password
+   - <a href="./handlers/auth_handler.go">Token Management:</a>
+     - `POST /refresh-token`: Generate new JWT token with refresh token
+     - `POST /logout`: Logout user by deleting refresh token
    - <a href="./handlers/userdata.go">User's CRUD:</a>
      - `GET /user`: Retrieve user information (protected route, requires JWT)
 

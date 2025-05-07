@@ -17,6 +17,8 @@ func main() {
 	})
 	app.Post("/regester", handlers.Regester)
 	app.Post("/login", handlers.Login)
+	app.Post("/logout", handlers.Logout)
+	app.Post("/refresh-token", handlers.RefreshToken)
 
 	// protected routes
 	app.Use(middleware.Protected())

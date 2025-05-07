@@ -22,6 +22,11 @@ type ResetPasswordRequest struct {
 	Password string `json:"password"`
 }
 
+type RefreshTokenRequest struct {
+	Username     string `json:"username"`
+	RefreshToken string `json:"refreshToken"`
+}
+
 func Regester(c *fiber.Ctx) error {
 	var req RegesterRequest
 	if err := c.BodyParser(&req); err != nil {
@@ -45,7 +50,12 @@ func Regester(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not generate token."})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"token": token})
+	refreshToken, err := auth.GenerateRefreshToken(req.Username)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not generate refresh token."})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"token": token, "refreshToken": refreshToken})
 }
 
 func Login(c *fiber.Ctx) error {
@@ -68,7 +78,25 @@ func Login(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not generate token."})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"token": token})
+	refreshToken, err := auth.GenerateRefreshToken(user.Username)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not generate refresh token."})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"token": token, "refreshToken": refreshToken})
+}
+
+func Logout(c *fiber.Ctx) error {
+	var req RefreshTokenRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request."})
+	}
+	err := database.InMemoryDB().DeleteRefreshToken(req.Username, req.RefreshToken)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not delete refresh token."})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Logout successful."})
 }
 
 func ResetPassword(c *fiber.Ctx) error {
@@ -95,5 +123,41 @@ func ResetPassword(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not update user's password."})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Password reset successfully."})
+	// Delete refresh tokens
+	err = database.InMemoryDB().DeleteRefreshTokens(user.Username)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not delete refresh tokens."})
+	}
+
+	// Generate new refresh token
+	refreshToken, err := auth.GenerateRefreshToken(user.Username)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not generate refresh token."})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Password reset successfully.", "refreshToken": refreshToken})
+}
+
+func RefreshToken(c *fiber.Ctx) error {
+	var req RefreshTokenRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request."})
+	}
+
+	userRefreshTokens, err := database.InMemoryDB().GetRefreshTokens(req.Username)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not get refresh tokens."})
+	}
+
+	for _, rToken := range userRefreshTokens {
+		if rToken == req.RefreshToken {
+			token, err := auth.GenerateJWT(req.Username)
+			if err != nil {
+				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not generate token."})
+			}
+			return c.Status(fiber.StatusOK).JSON(fiber.Map{"token": token})
+		}
+	}
+
+	return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid refresh token."})
 }
