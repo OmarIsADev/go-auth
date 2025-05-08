@@ -2,7 +2,10 @@ package database
 
 import (
 	"slices"
+	"strings"
 	"sync"
+
+	"github.com/omarisadev/go-auth/models"
 )
 
 type MemoryDBType struct {
@@ -30,6 +33,12 @@ func (m *MemoryDBType) SaveRefreshToken(username string, refreshToken string) er
 func (m *MemoryDBType) GetRefreshTokens(username string) ([]string, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
+
+	if m.users[username] == nil {
+		user, _ := GetUserByUsername(username)
+		m.users[username] = strings.Split(user.RefreshTokens, "+")
+	}
+
 	return m.users[username], nil
 }
 
@@ -49,5 +58,14 @@ func (m *MemoryDBType) DeleteRefreshTokens(username string) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	delete(m.users, username)
+	return nil
+}
+
+func (m *MemoryDBType) Save() error {
+
+	for user, tokens := range m.users {
+		DB.Model(&models.User{}).Where("username = ?", user).Update("refresh_tokens", strings.Join(tokens, "+"))
+	}
+
 	return nil
 }
