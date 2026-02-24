@@ -32,7 +32,7 @@ This is a simple auth built with Go and Fiber framework. It provides endpoints f
    JWT_SECRET=your_secret_key
    ```
 
-   *Incase you didn't the app will run normally, because there is a test key*
+   *In case you didn't the app will run normally, because there is a test key*
 
 3. **Run the application:**
 
@@ -48,7 +48,7 @@ This is a simple auth built with Go and Fiber framework. It provides endpoints f
 
 4. **API Endpoints:**
 
-   - <a href="./handlers/auth_handler.go">Authrization:</a>
+   - <a href="./handlers/auth_handler.go">Authorization:</a>
      - `POST /register`: Register a new user and receive a JWT token
      - `POST /login`: Login and receive a JWT token
      - `POST /reset-password`: Reset user's password

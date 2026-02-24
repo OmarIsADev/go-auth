@@ -22,7 +22,7 @@ func main() {
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("Hello, World!")
 	})
-	app.Post("/regester", handlers.Regester)
+	app.Post("/register", handlers.Register)
 	app.Post("/login", handlers.Login)
 	app.Post("/logout", handlers.Logout)
 	app.Post("/refresh-token", handlers.RefreshToken)
